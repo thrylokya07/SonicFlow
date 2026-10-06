@@ -7,11 +7,24 @@ const streamRoutes = require("./routes/streamRoutes");
 
 const app = express();
 
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigins = frontendUrl.includes(",")
+  ? frontendUrl.split(",").map((u) => u.trim())
+  : [frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173"];
+
 app.use(
   cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
     exposedHeaders: ["X-Cache", "X-Network", "Content-Length", "Accept-Ranges"]
   })
 );
+
 app.use(express.json());
 
 // Serve static HLS audio files under /audio/hls/ with correct HLS MIME headers
