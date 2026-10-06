@@ -75,6 +75,7 @@ export default function Dashboard({
 
           <ChunkVisualizer
             downloadedChunks={stats?.downloadedChunks || 0}
+            totalChunks={stats?.totalChunks || 0}
             active={true}
           />
 

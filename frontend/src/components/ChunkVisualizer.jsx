@@ -5,10 +5,12 @@ import {
 } from "lucide-react";
 
 export default function ChunkVisualizer({
-  downloadedChunks,
-  active
+  downloadedChunks = 0,
+  totalChunks = 0,
+  active = true
 }) {
-  const total = 12;
+  // Show up to 24 chunk indicators dynamically or fallback to 16
+  const total = totalChunks > 0 ? Math.min(totalChunks, 24) : 16;
 
   return (
     <div className="chunk-panel glass-panel">
@@ -24,7 +26,7 @@ export default function ChunkVisualizer({
         </div>
 
         <span className="chunk-count">
-          {downloadedChunks} loaded
+          {downloadedChunks} {totalChunks > 0 ? `/ ${totalChunks}` : ""} loaded
         </span>
       </div>
 
@@ -32,11 +34,8 @@ export default function ChunkVisualizer({
         {Array.from({
           length: total
         }).map((_, index) => {
-          const loaded =
-            index < downloadedChunks;
-
-          const current =
-            index === downloadedChunks;
+          const loaded = index < downloadedChunks;
+          const current = index === downloadedChunks;
 
           return (
             <div
@@ -48,6 +47,7 @@ export default function ChunkVisualizer({
                   ? "chunk loading"
                   : "chunk"
               }
+              title={`Segment ${index + 1} (${loaded ? "Loaded" : current ? "Downloading" : "Pending"})`}
             >
               {loaded ? (
                 <Check size={13} />
@@ -61,10 +61,7 @@ export default function ChunkVisualizer({
               )}
 
               <small>
-                {String(index + 1).padStart(
-                  2,
-                  "0"
-                )}
+                {String(index + 1).padStart(2, "0")}
               </small>
             </div>
           );
@@ -73,8 +70,7 @@ export default function ChunkVisualizer({
 
       <div className="chunk-caption">
         <span>
-          Each block represents an approximately
-          4-second HLS segment.
+          Each block represents a ~4-second HLS audio segment ({totalChunks > 24 ? `showing first 24 of ${totalChunks} segments` : `total ${totalChunks || total} segments`}).
         </span>
       </div>
     </div>
