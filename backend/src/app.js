@@ -1,21 +1,36 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 
 const songRoutes = require("./routes/songRoutes");
 const streamRoutes = require("./routes/streamRoutes");
 
 const app = express();
 
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-const allowedOrigins = frontendUrl.includes(",")
-  ? frontendUrl.split(",").map((u) => u.trim())
-  : [frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173"];
+const defaultAllowedOrigins = [
+  "https://sonic-flow-wine.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173"
+];
+
+const envFrontendUrl = process.env.FRONTEND_URL;
+const envOrigins = envFrontendUrl
+  ? envFrontendUrl.split(",").map((u) => u.trim())
+  : [];
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envOrigins]));
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
         return callback(null, true);
       }
       return callback(null, true);
@@ -27,10 +42,26 @@ app.use(
 
 app.use(express.json());
 
+function resolveHlsDir() {
+  const candidates = [
+    path.resolve(__dirname, "../../audio/hls"),
+    path.resolve(process.cwd(), "audio/hls"),
+    path.resolve(process.cwd(), "../audio/hls")
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return path.resolve(__dirname, "../../audio/hls");
+}
+
+const hlsDir = resolveHlsDir();
+
 // Serve static HLS audio files under /audio/hls/ with correct HLS MIME headers
 app.use(
   "/audio/hls",
-  express.static(path.join(__dirname, "../../audio/hls"), {
+  express.static(hlsDir, {
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".m3u8")) {
         res.setHeader("Content-Type", "application/vnd.apple.mpegurl");

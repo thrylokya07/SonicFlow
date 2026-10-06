@@ -73,7 +73,32 @@ async function runTests() {
       assert.ok(text.includes("64/playlist.m3u8"));
     });
 
-    // 5. Invalid song handling
+    // 5. Static /audio/hls master playlist & segment serving
+    await test("GET /audio/hls/song1/master.m3u8 serves master playlist with correct headers and CORS", async () => {
+      const res = await fetch(`${baseUrl}/audio/hls/song1/master.m3u8?network=excellent`, {
+        headers: { Origin: "https://sonic-flow-wine.vercel.app" }
+      });
+      assert.strictEqual(res.status, 200);
+      const contentType = res.headers.get("content-type");
+      assert.ok(contentType && contentType.includes("mpegurl"), `Unexpected content-type: ${contentType}`);
+      const text = await res.text();
+      assert.ok(text.includes("#EXTM3U"));
+      assert.ok(text.includes("64/playlist.m3u8"));
+      assert.strictEqual(res.headers.get("access-control-allow-origin"), "https://sonic-flow-wine.vercel.app");
+    });
+
+    await test("GET /audio/hls/song1/64/segment000.ts serves video/mp2t segment", async () => {
+      const res = await fetch(`${baseUrl}/audio/hls/song1/64/segment000.ts`, {
+        headers: { Origin: "https://sonic-flow-wine.vercel.app" }
+      });
+      assert.strictEqual(res.status, 200);
+      const contentType = res.headers.get("content-type");
+      assert.ok(contentType && contentType.includes("video/mp2t"), `Unexpected content-type: ${contentType}`);
+      const buf = await res.arrayBuffer();
+      assert.ok(buf.byteLength > 0);
+    });
+
+    // 6. Invalid song handling
     await test("GET /api/songs/invalid_song_999 returns 404", async () => {
       const res = await fetch(`${baseUrl}/api/songs/invalid_song_999`);
       assert.strictEqual(res.status, 404);

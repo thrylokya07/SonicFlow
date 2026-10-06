@@ -10,10 +10,21 @@ const {
 
 const router = express.Router();
 
-const HLS_ROOT = path.join(
-  __dirname,
-  "../../../audio/hls"
-);
+function resolveHlsDir() {
+  const candidates = [
+    path.resolve(__dirname, "../../../audio/hls"),
+    path.resolve(process.cwd(), "audio/hls"),
+    path.resolve(process.cwd(), "../audio/hls")
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return path.resolve(__dirname, "../../../audio/hls");
+}
+
+const HLS_ROOT = resolveHlsDir();
 
 function isValidQuality(quality) {
   return ["64", "128", "256"].includes(quality);
