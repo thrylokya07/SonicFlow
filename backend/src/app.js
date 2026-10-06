@@ -9,7 +9,7 @@ const app = express();
 
 app.use(
   cors({
-    exposedHeaders: ["X-Cache", "X-Network"]
+    exposedHeaders: ["X-Cache", "X-Network", "Content-Length", "Accept-Ranges"]
   })
 );
 app.use(express.json());

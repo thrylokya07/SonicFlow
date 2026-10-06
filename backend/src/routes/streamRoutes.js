@@ -69,6 +69,11 @@ router.get("/:songId/master.m3u8", async (req, res) => {
     return res.status(400).send("Invalid song ID");
   }
 
+  const songFolder = path.join(HLS_ROOT, songId);
+  if (!fs.existsSync(songFolder)) {
+    return res.status(404).send("Song stream folder not found");
+  }
+
   const network = getNetwork(req);
 
   const playlist = [
@@ -116,28 +121,16 @@ router.get(
       return res.status(400).send("Invalid quality");
     }
 
-    let targetSong = songId;
-    let playlistPath = path.join(
+    const playlistPath = path.join(
       HLS_ROOT,
-      targetSong,
+      songId,
       quality,
       "playlist.m3u8"
     );
 
-    // Fallback to song1 audio directory if target song folder doesn't exist on disk
-    if (!fs.existsSync(playlistPath)) {
-      targetSong = "song1";
-      playlistPath = path.join(
-        HLS_ROOT,
-        targetSong,
-        quality,
-        "playlist.m3u8"
-      );
-    }
-
     if (!fs.existsSync(playlistPath)) {
       return res.status(404).send(
-        "HLS playlist not generated. Run npm run generate-hls first."
+        `HLS playlist for song '${songId}' (${quality}k) not found.`
       );
     }
 
@@ -208,22 +201,16 @@ router.get(
       return res.status(400).send("Invalid segment");
     }
 
-    let targetSong = songId;
-    let filePath = path.join(
+    const filePath = path.join(
       HLS_ROOT,
-      targetSong,
+      songId,
       quality,
       segment
     );
 
-    // Fallback to song1 audio directory if target song segment doesn't exist on disk
     if (!fs.existsSync(filePath)) {
-      targetSong = "song1";
-      filePath = path.join(
-        HLS_ROOT,
-        targetSong,
-        quality,
-        segment
+      return res.status(404).send(
+        `Segment '${segment}' for song '${songId}' not found.`
       );
     }
 

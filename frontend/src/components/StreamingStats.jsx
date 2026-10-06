@@ -26,7 +26,7 @@ export default function StreamingStats({
     },
     {
       label: "CACHE",
-      value: stats.cache,
+      value: stats.cacheText || stats.cache || "WAITING",
       icon: Download
     }
   ];
