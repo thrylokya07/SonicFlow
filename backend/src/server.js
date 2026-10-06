@@ -13,8 +13,8 @@ async function startServer() {
     console.log("======================================");
     console.log("       🎵 SONICFLOW BACKEND");
     console.log("======================================");
-    console.log(`Server running: http://localhost:${PORT}`);
-    console.log(`Health check:   http://localhost:${PORT}/api/health`);
+    console.log(`Server listening on port: ${PORT}`);
+    console.log(`Health check endpoint:   /api/health`);
     console.log("======================================");
     console.log("");
   });
